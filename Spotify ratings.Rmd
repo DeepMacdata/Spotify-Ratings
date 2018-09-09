@@ -1,0 +1,292 @@
+---
+title: "Spotify Ratings"
+author: "Rajasekar Kamaraj"
+date: "9/9/2018"
+output: html_document
+---
+
+#Libraries 
+```{r}
+library(httr)
+library(jsonlite)
+library(curl)
+library(ggplot2)
+library(reshape2)
+library(stringr)
+#install.packages("fuzzyjoin",repos='http://cran.us.r-project.org')
+#install.packages("stringdist",repos='http://cran.us.r-project.org')
+library(stringdist)
+library(fuzzyjoin)
+```
+
+#Getting song names and artists
+```{r}
+spotifyKey <- '2397dddcfb414677a3de9358076af700'
+spotifySecret <- '32aa709ed093430b8a081774dfd8cbc4'
+response = POST('https://accounts.spotify.com/api/token',
+              accept_json(),
+              authenticate(spotifyKey, spotifySecret),
+              body = list(grant_type = 'client_credentials'),
+              encode = 'form',
+              verbose()
+mytoken = content(response)$access_token
+spotifyID <- "22vj7pwybpow4rrgw6acnxolq"
+spotifyPlaylist <- "7ckg79YQQcX6yiCGNbrRBx"
+artists_name <- data.frame()
+name_track <- data.frame()
+for(offset in c(0,100,200,300,400,500)){
+        playlistTracksURL <- paste("https://api.spotify.com/v1/users/",
+                                   spotifyID,
+                                   "/playlists/",
+                                   spotifyPlaylist,
+                                   "/tracks?offset=",offset,
+                                   sep="")     
+HeaderValue = paste0('Bearer ', mytoken)
+        getTracks <- GET(url=playlistTracksURL, add_headers(Authorization = HeaderValue))
+        info <- jsonlite::fromJSON(toJSON(content(getTracks)))
+        track <- unlist(info$items$track$id)
+        name <- unlist(info$items$track$name)
+        name_track1 <- as.data.frame(cbind(as.character(name),as.character(track)))
+        name_track <- as.data.frame(rbind(name_track,name_track1))
+        
+        artists <- as.character()
+        if(offset == 500){
+                for(i in 1:82){
+                        
+                        artists <- paste0(artists,unlist(info$items$track$artists[[i]][4][[1]][1]),sep=",")
+                        
+                        
+                }} else {
+                        for(i in 1:100){
+                                
+                                artists <- paste0(artists,unlist(info$items$track$artists[[i]][4][[1]][1]),sep=",")
+                                
+                                
+                        }  
+                }  
+artists <- as.data.frame(unlist(strsplit(artists, ",", fixed = TRUE)))
+        
+        artists_name <- as.data.frame(rbind(artists_name,artists))
+        
+        
+}
+
+artists_name <- as.data.frame(artists_name[-c(334,335,344,348,349),])
+name_track <- as.data.frame(cbind(name_track,artists_name))
+colnames(name_track) <- c("Songs","TrackID","Artist")
+name_track <- name_track[order(name_track$Songs),]
+trackIDs <- unlist(as.character(name_track$TrackID))
+```
+
+#Spotify Track ID's
+```{r}
+audio_feat_op <- data.frame()
+track_str <- trackIDs[1]
+for (i in 2:100) {
+       
+  track_str <- paste(track_str, trackIDs[i], sep=",")
+}
+
+trackFeaturesURL <- paste("https://api.spotify.com/v1/audio-features/?ids=",
+                           track_str,
+                           sep="")
+
+getSongFeats <- GET(url=trackFeaturesURL, add_headers(Authorization = HeaderValue))
+info2 <- jsonlite::fromJSON(toJSON(content(getSongFeats)))
+audio_features <- as.data.frame(info2)
+audio_feat_op <- as.data.frame(rbind(audio_feat_op,audio_features))
+
+track_str <- trackIDs[101]
+for (j in 102:200){
+        track_str <- paste(track_str, trackIDs[j], sep=",")
+}
+trackFeaturesURL <- paste("https://api.spotify.com/v1/audio-features/?ids=",
+                           track_str,
+                           sep="")
+
+getSongFeats <- GET(url=trackFeaturesURL, add_headers(Authorization = HeaderValue))
+info2 <- jsonlite::fromJSON(toJSON(content(getSongFeats)))
+audio_features <- as.data.frame(info2)
+audio_feat_op <- as.data.frame(rbind(audio_feat_op,audio_features))
+
+track_str <- trackIDs[201]
+for (j in 202:300){
+        track_str <- paste(track_str, trackIDs[j], sep=",")
+}
+trackFeaturesURL <- paste("https://api.spotify.com/v1/audio-features/?ids=",
+                           track_str,
+                           sep="")
+
+getSongFeats <- GET(url=trackFeaturesURL, add_headers(Authorization = HeaderValue))
+info2 <- jsonlite::fromJSON(toJSON(content(getSongFeats)))
+audio_features <- as.data.frame(info2)
+audio_feat_op <- as.data.frame(rbind(audio_feat_op,audio_features))
+
+track_str <- trackIDs[301]
+for (j in 302:400){
+        track_str <- paste(track_str, trackIDs[j], sep=",")
+}
+trackFeaturesURL <- paste("https://api.spotify.com/v1/audio-features/?ids=",
+                           track_str,
+                           sep="")
+
+getSongFeats <- GET(url=trackFeaturesURL, add_headers(Authorization = HeaderValue))
+info2 <- jsonlite::fromJSON(toJSON(content(getSongFeats)))
+audio_features <- as.data.frame(info2)
+audio_feat_op <- as.data.frame(rbind(audio_feat_op,audio_features))
+
+track_str <- trackIDs[401]
+for (j in 402:500){
+        track_str <- paste(track_str, trackIDs[j], sep=",")
+}
+trackFeaturesURL <- paste("https://api.spotify.com/v1/audio-features/?ids=",
+                           track_str,
+                           sep="")
+
+getSongFeats <- GET(url=trackFeaturesURL, add_headers(Authorization = HeaderValue))
+info2 <- jsonlite::fromJSON(toJSON(content(getSongFeats)))
+audio_features <- as.data.frame(info2)
+audio_feat_op <- as.data.frame(rbind(audio_feat_op,audio_features))
+
+track_str <- trackIDs[501]
+for (j in 502:582){
+        track_str <- paste(track_str, trackIDs[j], sep=",")
+}
+trackFeaturesURL <- paste("https://api.spotify.com/v1/audio-features/?ids=",
+                           track_str,
+                           sep="")
+
+getSongFeats <- GET(url=trackFeaturesURL, add_headers(Authorization = HeaderValue))
+info2 <- jsonlite::fromJSON(toJSON(content(getSongFeats)))
+audio_features <- as.data.frame(info2)
+audio_feat_op <- as.data.frame(rbind(audio_feat_op,audio_features))
+song_feat <- as.data.frame(cbind(name_track,audio_feat_op))
+rownames(song_feat) <- 1:nrow(song_feat)
+colnames(song_feat)[1] <- "Title"
+
+audio_feat_op <- data.frame()
+track_str <- trackIDs[1]
+for (i in 2:100) {
+       
+  track_str <- paste(track_str, trackIDs[i], sep=",")
+}
+
+trackFeaturesURL <- paste("https://api.spotify.com/v1/audio-features/?ids=",
+                           track_str,
+                           sep="")
+
+getSongFeats <- GET(url=trackFeaturesURL, add_headers(Authorization = HeaderValue))
+info2 <- jsonlite::fromJSON(toJSON(content(getSongFeats)))
+audio_features <- as.data.frame(info2)
+audio_feat_op <- as.data.frame(rbind(audio_feat_op,audio_features))
+
+track_str <- trackIDs[101]
+for (j in 102:200){
+        track_str <- paste(track_str, trackIDs[j], sep=",")
+}
+trackFeaturesURL <- paste("https://api.spotify.com/v1/audio-features/?ids=",
+                           track_str,
+                           sep="")
+
+getSongFeats <- GET(url=trackFeaturesURL, add_headers(Authorization = HeaderValue))
+info2 <- jsonlite::fromJSON(toJSON(content(getSongFeats)))
+audio_features <- as.data.frame(info2)
+audio_feat_op <- as.data.frame(rbind(audio_feat_op,audio_features))
+
+track_str <- trackIDs[201]
+for (j in 202:300){
+        track_str <- paste(track_str, trackIDs[j], sep=",")
+}
+trackFeaturesURL <- paste("https://api.spotify.com/v1/audio-features/?ids=",
+                           track_str,
+                           sep="")
+
+getSongFeats <- GET(url=trackFeaturesURL, add_headers(Authorization = HeaderValue))
+info2 <- jsonlite::fromJSON(toJSON(content(getSongFeats)))
+audio_features <- as.data.frame(info2)
+audio_feat_op <- as.data.frame(rbind(audio_feat_op,audio_features))
+
+track_str <- trackIDs[301]
+for (j in 302:400){
+        track_str <- paste(track_str, trackIDs[j], sep=",")
+}
+trackFeaturesURL <- paste("https://api.spotify.com/v1/audio-features/?ids=",
+                           track_str,
+                           sep="")
+
+getSongFeats <- GET(url=trackFeaturesURL, add_headers(Authorization = HeaderValue))
+info2 <- jsonlite::fromJSON(toJSON(content(getSongFeats)))
+audio_features <- as.data.frame(info2)
+audio_feat_op <- as.data.frame(rbind(audio_feat_op,audio_features))
+
+track_str <- trackIDs[401]
+for (j in 402:500){
+        track_str <- paste(track_str, trackIDs[j], sep=",")
+}
+trackFeaturesURL <- paste("https://api.spotify.com/v1/audio-features/?ids=",
+                           track_str,
+                           sep="")
+
+getSongFeats <- GET(url=trackFeaturesURL, add_headers(Authorization = HeaderValue))
+info2 <- jsonlite::fromJSON(toJSON(content(getSongFeats)))
+audio_features <- as.data.frame(info2)
+audio_feat_op <- as.data.frame(rbind(audio_feat_op,audio_features))
+
+track_str <- trackIDs[501]
+for (j in 502:582){
+        track_str <- paste(track_str, trackIDs[j], sep=",")
+}
+trackFeaturesURL <- paste("https://api.spotify.com/v1/audio-features/?ids=",
+                           track_str,
+                           sep="")
+
+getSongFeats <- GET(url=trackFeaturesURL, add_headers(Authorization = HeaderValue))
+info2 <- jsonlite::fromJSON(toJSON(content(getSongFeats)))
+audio_features <- as.data.frame(info2)
+audio_feat_op <- as.data.frame(rbind(audio_feat_op,audio_features))
+song_feat <- as.data.frame(cbind(name_track,audio_feat_op))
+rownames(song_feat) <- 1:nrow(song_feat)
+colnames(song_feat)[1] <- "Title"
+```
+
+#Exploratory Data Analysis
+```{r}
+song_list <- read.csv("C:/Users/Raghavendran/Documents/UN 5550/song-list.csv")
+song_list <- song_list[order(song_list[,1]),]
+rownames(song_list) <- 1:nrow(song_list)
+song_list <- song_list[-c(1,19,96,102,189,295,339,345,498,507,519,591),]
+rownames(song_list) <- 1:nrow(song_list)
+song_list$Title <- gsub( "[^[:alnum:],]", " ", song_list$Title )
+song_feat$Title <- gsub( "[^[:alnum:],]", " ", song_feat$Title )
+songs <- unique(stringdist_inner_join(stringdist_semi_join(song_list,song_feat,by=c("Title","Artist"),max_dist=200),stringdist_semi_join(song_feat,song_list,by=c("Title","Artist"),max_dist=200),by=c('Title','Artist')))
+
+```
+
+#Plots and Graphs
+```{r}
+Histo <- function(x,y,z){
+        hist(as.numeric(x),main=paste0('Histogram of ',y),xlab=paste0(y),col='blue',breaks = z)
+}
+
+```
+```{r Histogram with 8 breaks,echo=FALSE}
+par(mfrow=c(1,2))
+Histo(songs$Peak,"Peak",8)
+{r Stacked Histogram,echo=FALSE}
+par(mfrow=c(1,2))
+Successfulness = as.factor(songs$Successful)
+ggplot(melt(as.numeric(songs$Peak)),aes(x=as.numeric(songs$Peak),fill= Successfulness)) + geom_histogram(position="stack",binwidth = 2.5) + labs(title = "Histogram of Peak with respect to Successfulness") + xlab("Peak")
+boxplt <- function(y,ylab){
+        boxplot(as.numeric(y) ~ songs$Successful,col=c('red','blue'),xlab='Successfulness',ylab=paste0(ylab),main=paste0('Boxplot of ',ylab))
+}
+
+par(mfrow=c(1,2))
+
+boxplt(songs$Peak,'Peak')
+par(mfrow=c(1,2))
+barplot(table(as.character(songs$audio_features.key)),col="green",main="Barplot of key",xlab="keys",ylab="counts")
+par(mfrow=c(1,2))
+ggplot(melt(as.character(songs$audio_features.key)),aes(x=as.character(songs$audio_features.key),fill= Successfulness)) + geom_bar(position="stack") + labs(title = "Barplot of Key with respect to Successfulness") + xlab("Key")
+pairs(cbind(as.numeric(songs$audio_features.speechiness),as.numeric(songs$audio_features.acousticness)),labels=c("Speechiness","Acousticness"),main="Analysis of speechiness and acousticness")
+```
+
